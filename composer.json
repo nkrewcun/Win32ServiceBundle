@@ -46,7 +46,7 @@
     "symfony/runtime": "^6.0||^7.0",
     "symfony/messenger": "^6.0||^7.0",
     "symfony/doctrine-messenger":  "^6.0||^7.0",
-    "symfony/monolog-bundle": "^3.10",
+    "symfony/monolog-bundle": "^3.10||^4.0",
     "doctrine/doctrine-bundle": "^3.0",
     "doctrine/doctrine-migrations-bundle": "^4.0",
     "doctrine/orm": "^3.0",
