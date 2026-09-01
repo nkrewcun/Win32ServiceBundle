@@ -6,7 +6,7 @@ namespace Win32ServiceBundle\Tests\Unit\MessengerIntegration;
 
 require_once \dirname(__DIR__, 2).'/Win32serviceState.php';
 
-use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Win32Service\Model\AbstractServiceRunner;
@@ -43,13 +43,13 @@ final class MemoryLimitMessageTest extends KernelTestCase
         /** @var Connection $connexion */
         $connexion = $container->get('doctrine.dbal.default_connection');
         $connexion->beginTransaction();
-        $connexion->query('DELETE FROM messenger_messages');
+        $connexion->executeQuery('DELETE FROM messenger_messages');
         /** @var MessageBusInterface $messengerBus */
         $messengerBus = $container->get('messenger.bus.default');
         $messengerBus->dispatch(new TestMemoryLimitMessage( /* 129 Mio */1024 * 1024 * 129));
         $messengerBus->dispatch(new TestMessage('message 1'));
 
-        $c = $connexion->query('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\'');
+        $c = $connexion->executeQuery('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\'');
 
         $this->assertSame(2, (int) $c->fetchOne());
 
@@ -65,13 +65,13 @@ final class MemoryLimitMessageTest extends KernelTestCase
 
         $this->assertTrue($value->getValue($runner));
 
-        $c = $connexion->query('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\' AND delivered_at IS NULL');
+        $c = $connexion->executeQuery('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\' AND delivered_at IS NULL');
 
         $this->assertSame(1, (int) $c->fetchOne());
 
         // The memory-limit message has been processed successfully and acknowledged, so it has
         // been removed from the table entirely (it is not kept around with delivered_at set).
-        $c = $connexion->query('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\' AND delivered_at IS NOT NULL');
+        $c = $connexion->executeQuery('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\' AND delivered_at IS NOT NULL');
 
         $this->assertSame(0, (int) $c->fetchOne());
     }

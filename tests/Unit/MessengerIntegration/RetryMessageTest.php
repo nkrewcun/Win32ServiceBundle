@@ -6,7 +6,7 @@ namespace Win32ServiceBundle\Tests\Unit\MessengerIntegration;
 
 require_once \dirname(__DIR__, 2).'/Win32serviceState.php';
 
-use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Win32Service\Model\ServiceIdentifier;
@@ -41,12 +41,12 @@ final class RetryMessageTest extends KernelTestCase
         /** @var Connection $connexion */
         $connexion = $container->get('doctrine.dbal.default_connection');
         $connexion->beginTransaction();
-        $connexion->query('DELETE FROM messenger_messages');
+        $connexion->executeQuery('DELETE FROM messenger_messages');
         /** @var MessageBusInterface $messengerBus */
         $messengerBus = $container->get('messenger.bus.default');
         $messengerBus->dispatch(new TestRetryMessage());
 
-        $c = $connexion->query('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\'');
+        $c = $connexion->executeQuery('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\'');
 
         $this->assertSame(1, (int) $c->fetchOne());
 
@@ -59,7 +59,7 @@ final class RetryMessageTest extends KernelTestCase
 
         // The failing message is rejected (and thus removed from the table) and a new envelope
         // is scheduled for retry, so only that pending retry message remains.
-        $c = $connexion->query('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\'');
+        $c = $connexion->executeQuery('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\'');
 
         $this->assertSame(1, (int) $c->fetchOne());
     }

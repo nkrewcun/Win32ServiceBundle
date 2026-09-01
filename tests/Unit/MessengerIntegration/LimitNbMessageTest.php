@@ -6,7 +6,7 @@ namespace Win32ServiceBundle\Tests\Unit\MessengerIntegration;
 
 require_once \dirname(__DIR__, 2).'/Win32serviceState.php';
 
-use Doctrine\DBAL\Driver\Connection;
+use Doctrine\DBAL\Connection;
 use Symfony\Bundle\FrameworkBundle\Test\KernelTestCase;
 use Symfony\Component\Messenger\MessageBusInterface;
 use Win32Service\Model\AbstractServiceRunner;
@@ -42,7 +42,7 @@ final class LimitNbMessageTest extends KernelTestCase
         /** @var Connection $connexion */
         $connexion = $container->get('doctrine.dbal.default_connection');
         $connexion->beginTransaction();
-        $connexion->query('DELETE FROM messenger_messages');
+        $connexion->executeQuery('DELETE FROM messenger_messages');
         /** @var MessageBusInterface $messengerBus */
         $messengerBus = $container->get('messenger.bus.default');
         $messagesTotal = 20;
@@ -50,7 +50,7 @@ final class LimitNbMessageTest extends KernelTestCase
             $messengerBus->dispatch(new TestMessage('message '.$i));
         }
 
-        $c = $connexion->query('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\'');
+        $c = $connexion->executeQuery('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\'');
 
         $this->assertSame($messagesTotal, (int) $c->fetchOne());
 
@@ -66,11 +66,11 @@ final class LimitNbMessageTest extends KernelTestCase
 
         $this->assertTrue($value->getValue($runner));
 
-        $c = $connexion->query('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\' AND delivered_at IS NULL');
+        $c = $connexion->executeQuery('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\' AND delivered_at IS NULL');
 
         $this->assertSame(10, (int) $c->fetchOne());
 
-        $c = $connexion->query('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\' AND delivered_at IS NOT NULL');
+        $c = $connexion->executeQuery('SELECT count(*) FROM messenger_messages WHERE queue_name = \'default\' AND delivered_at IS NOT NULL');
         // The 10 processed messages have been acknowledged and removed from the table entirely.
         $this->assertSame(0, (int) $c->fetchOne());
     }
